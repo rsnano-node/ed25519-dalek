@@ -18,7 +18,7 @@ use rand_core::CryptoRngCore;
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use sha2::Sha512;
+use blake2::Blake2b;
 
 use curve25519_dalek::{
     digest::{generic_array::typenum::U64, Digest},
@@ -309,7 +309,7 @@ impl SigningKey {
     where
         MsgDigest: Digest<OutputSize = U64>,
     {
-        ExpandedSecretKey::from(&self.secret_key).raw_sign_prehashed::<Sha512, MsgDigest>(
+        ExpandedSecretKey::from(&self.secret_key).raw_sign_prehashed::<Blake2b<U64>, MsgDigest>(
             prehashed_message,
             &self.verifying_key,
             context,
@@ -507,7 +507,7 @@ impl Signer<Signature> for SigningKey {
     /// Sign a message with this signing key's secret key.
     fn try_sign(&self, message: &[u8]) -> Result<Signature, SignatureError> {
         let expanded: ExpandedSecretKey = (&self.secret_key).into();
-        Ok(expanded.raw_sign::<Sha512>(message, &self.verifying_key))
+        Ok(expanded.raw_sign::<Blake2b<U64>>(message, &self.verifying_key))
     }
 }
 
@@ -725,7 +725,7 @@ impl<'d> Deserialize<'d> for SigningKey {
 impl From<&SecretKey> for ExpandedSecretKey {
     #[allow(clippy::unwrap_used)]
     fn from(secret_key: &SecretKey) -> ExpandedSecretKey {
-        let hash = Sha512::default().chain_update(secret_key).finalize();
+        let hash = Blake2b::default().chain_update(secret_key).finalize();
         ExpandedSecretKey::from_bytes(hash.as_ref())
     }
 }

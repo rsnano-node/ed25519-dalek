@@ -270,9 +270,9 @@ pub mod hazmat;
 mod hazmat;
 
 #[cfg(feature = "digest")]
-pub use curve25519_dalek::digest::Digest;
+pub use blake2::Blake2b;
 #[cfg(feature = "digest")]
-pub use sha2::Sha512;
+pub use curve25519_dalek::digest::Digest;
 
 #[cfg(feature = "batch")]
 pub use crate::batch::*;

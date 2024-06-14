@@ -15,6 +15,7 @@ use core::convert::TryFrom;
 use core::iter::once;
 
 use curve25519_dalek::constants;
+use curve25519_dalek::digest::generic_array::typenum::U64;
 use curve25519_dalek::edwards::EdwardsPoint;
 use curve25519_dalek::scalar::Scalar;
 use curve25519_dalek::traits::IsIdentity;
@@ -26,7 +27,7 @@ use merlin::Transcript;
 
 use rand_core::RngCore;
 
-use sha2::Sha512;
+use blake2::Blake2b;
 
 use crate::errors::InternalError;
 use crate::errors::SignatureError;
@@ -173,7 +174,7 @@ pub fn verify_batch(
             // R = sig.R
             // A = verifying key
             // M = msg
-            let mut h: Sha512 = Sha512::default();
+            let mut h: Blake2b<U64> = Blake2b::default();
             h.update(signatures[i].r_bytes());
             h.update(verifying_keys[i].as_bytes());
             h.update(&messages[i]);

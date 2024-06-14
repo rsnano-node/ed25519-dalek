@@ -21,13 +21,13 @@ use hex_literal::hex;
 mod vectors {
     use super::*;
 
+    use blake2::{digest::Digest, Blake2b};
     use curve25519_dalek::{
         constants::ED25519_BASEPOINT_POINT,
         edwards::{CompressedEdwardsY, EdwardsPoint},
         scalar::Scalar,
         traits::IsIdentity,
     };
-    use sha2::{digest::Digest, Sha512};
 
     use std::{
         convert::TryFrom,
@@ -110,8 +110,8 @@ mod vectors {
         assert_eq!(expected_verifying_key, signing_key.verifying_key());
         let sig1 = Signature::try_from(&sig_bytes[..]).unwrap();
 
-        let mut prehash_for_signing = Sha512::default();
-        let mut prehash_for_verifying = Sha512::default();
+        let mut prehash_for_signing = Blake2b::default();
+        let mut prehash_for_verifying = Blake2b::default();
 
         prehash_for_signing.update(&msg_bytes[..]);
         prehash_for_verifying.update(&msg_bytes[..]);
@@ -158,7 +158,7 @@ mod vectors {
         signature_r: &EdwardsPoint,
         context: Option<&[u8]>,
     ) -> Scalar {
-        let mut h = Sha512::default();
+        let mut h = Blake2b::default();
         if let Some(c) = context {
             h.update(b"SigEd25519 no Ed25519 collisions");
             h.update(&[1]);
@@ -242,8 +242,8 @@ mod vectors {
     #[cfg(feature = "digest")]
     #[test]
     fn repudiation_prehash() {
-        let message1 = Sha512::new().chain_update(b"Send 100 USD to Alice");
-        let message2 = Sha512::new().chain_update(b"Send 100000 USD to Alice");
+        let message1 = Blake2b::new().chain_update(b"Send 100 USD to Alice");
+        let message2 = Blake2b::new().chain_update(b"Send 100000 USD to Alice");
         let message1_bytes = message1.clone().finalize();
         let message2_bytes = message2.clone().finalize();
 
@@ -287,9 +287,10 @@ mod vectors {
 #[cfg(feature = "rand_core")]
 mod integrations {
     use super::*;
-    use rand::rngs::OsRng;
     #[cfg(feature = "digest")]
-    use sha2::Sha512;
+    use blake2::Blake2b;
+    use curve25519_dalek::digest::generic_array::typenum::U64;
+    use rand::rngs::OsRng;
     use std::collections::HashMap;
 
     #[test]
@@ -350,17 +351,17 @@ mod integrations {
 
         let mut csprng = OsRng;
 
-        // ugh… there's no `impl Copy for Sha512`… i hope we can all agree these are the same hashes
-        let mut prehashed_good1: Sha512 = Sha512::default();
+        // ugh… there's no `impl Copy for Blake2b`… i hope we can all agree these are the same hashes
+        let mut prehashed_good1: Blake2b<U64> = Blake2b::default();
         prehashed_good1.update(good);
-        let mut prehashed_good2: Sha512 = Sha512::default();
+        let mut prehashed_good2: Blake2b<U64> = Blake2b::default();
         prehashed_good2.update(good);
-        let mut prehashed_good3: Sha512 = Sha512::default();
+        let mut prehashed_good3: Blake2b<U64> = Blake2b::default();
         prehashed_good3.update(good);
 
-        let mut prehashed_bad1: Sha512 = Sha512::default();
+        let mut prehashed_bad1: Blake2b<U64> = Blake2b::default();
         prehashed_bad1.update(bad);
-        let mut prehashed_bad2: Sha512 = Sha512::default();
+        let mut prehashed_bad2: Blake2b<U64> = Blake2b::default();
         prehashed_bad2.update(bad);
 
         let context: &[u8] = b"testing testing 1 2 3";

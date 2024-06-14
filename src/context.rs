@@ -81,10 +81,10 @@ impl<'k, 'v, K> Context<'k, 'v, K> {
 #[cfg(all(test, feature = "digest"))]
 mod test {
     use crate::{Signature, SigningKey, VerifyingKey};
+    use blake2::Blake2b;
     use curve25519_dalek::digest::Digest;
     use ed25519::signature::{DigestSigner, DigestVerifier};
     use rand::rngs::OsRng;
-    use sha2::Sha512;
 
     #[test]
     fn context_correctness() {
@@ -93,7 +93,7 @@ mod test {
         let verifying_key: VerifyingKey = signing_key.verifying_key();
 
         let context_str = b"Local Channel 3";
-        let prehashed_message = Sha512::default().chain_update(b"Stay tuned for more news at 7");
+        let prehashed_message = Blake2b::default().chain_update(b"Stay tuned for more news at 7");
 
         // Signer
         let signing_context = signing_key.with_context(context_str).unwrap();
