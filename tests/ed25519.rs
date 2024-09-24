@@ -36,6 +36,46 @@ mod vectors {
         ops::Neg,
     };
 
+    #[test]
+    fn valid_signature() {
+        let verifying_key = VerifyingKey::from_bytes(
+            &<[u8; 32]>::from_hex("6073462394F5F6EA8D78E25DED3C0C5334EAD7813FEF8282CE1D72AFD126D32E").unwrap()
+        )
+        .unwrap();
+
+        let msg_bytes: Vec<u8> = FromHex::from_hex("13D4DBF09958FBFB733121F7268B67C3E9701BDF7D406B43B831F615D7AFFBA6").unwrap();
+
+        let signature_bytes: Vec<u8> = FromHex::from_hex("69B5F3051A007C6BCABFE644737600E8918D43E5A0A74694518F7E3AD31543D269CBE125AA2561591BBEA6614C21FBABBA7923A194040D115AE3D82475D48200").unwrap();
+        let signature_array: &[u8; 64] = signature_bytes.as_slice().try_into().unwrap();
+        let signature = Signature::from_bytes(signature_array);
+
+        assert!(
+            verifying_key
+                .verify_strict(&msg_bytes, &signature)
+                .is_ok(),
+        );
+    }
+
+    #[test]
+    fn regression_validate_weird_signature() {
+        let verifying_key = VerifyingKey::from_bytes(
+            &<[u8; 32]>::from_hex("49FEC0594D6E7F7040312E400F5F5285CB51FAF5DD8EB10CADBB02915058CCF7").unwrap()
+        )
+        .unwrap();
+
+        let msg_bytes: Vec<u8> = FromHex::from_hex("E03D646E37DAE61E4D21281054418EF733CCFB9943B424B36B203ED063340A88").unwrap();
+
+        let signature_bytes: Vec<u8> = FromHex::from_hex("3C14AF3E82BFC7DFD04EDF1639CDBF3580C02450CED478F269A4169A941617097D73A77721B62847558659371DBC3F6830724A7A55117750E5743562D1CF671E").unwrap();
+        let signature_array: &[u8; 64] = signature_bytes.as_slice().try_into().unwrap();
+        let signature = Signature::from_bytes(signature_array);
+
+        assert!(
+            verifying_key
+                .verify_strict(&msg_bytes, &signature)
+                .is_ok(),
+        );
+    }
+
     // TESTVECTORS is taken from sign.input.gz in agl's ed25519 Golang
     // package. It is a selection of test cases from
     // http://ed25519.cr.yp.to/python/sign.input
