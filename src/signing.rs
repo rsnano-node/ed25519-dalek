@@ -13,7 +13,7 @@
 use ed25519::pkcs8;
 
 #[cfg(any(test, feature = "rand_core"))]
-use rand_core::CryptoRngCore;
+use rand_core::CryptoRng;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -193,7 +193,7 @@ impl SigningKey {
     /// which is available with `use sha2::Sha512` as in the example above.
     /// Other suitable hash functions include Keccak-512 and Blake2b-512.
     #[cfg(any(test, feature = "rand_core"))]
-    pub fn generate<R: CryptoRngCore + ?Sized>(csprng: &mut R) -> SigningKey {
+    pub fn generate<R: CryptoRng + ?Sized>(csprng: &mut R) -> SigningKey {
         let mut secret = SecretKey::default();
         csprng.fill_bytes(&mut secret);
         Self::from_bytes(&secret)
